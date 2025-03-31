@@ -1,4 +1,4 @@
-package org.js;
+package org.js.githubrepos;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

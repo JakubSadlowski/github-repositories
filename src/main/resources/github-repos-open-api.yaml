@@ -1,0 +1,160 @@
+openapi: 3.0.3
+info:
+  title: Github Repositories OpenAPI
+  description: |-
+    API to list GitHub repositories for a user that are not forks.
+  contact:
+    name: Jakub Sadłowski
+    email: sadlowski.jakub.work@gmail.com
+    url: https://github.com/SadlowskiJakub
+  version: 1.0.11
+servers:
+  - url: https://localhost:8080/
+tags:
+  - name: swift-codes
+    description: Everything about bank SWIFT codes
+paths:
+  /v1/swift-codes/{swift-code}:
+    get:
+      tags:
+        - swift-codes
+      summary: Find single SWIFT code
+      description: Returns a single bank SWIFT code
+      operationId: getSwiftCode
+      parameters:
+        - name: swift-code
+          in: path
+          description: SWIFT code of bank headquarter or branch to return
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankData'
+              examples:
+                headquarter:
+                  summary: Example of headquarter data
+                  value:
+                    address: "HARMONY CENTER UL. STANISLAWA ZARYNA 2A WARSZAWA, MAZOWIECKIE, 02-593"
+                    bankName: "BANK MILLENNIUM S.A."
+                    countryISO2: "PL"
+                    countryName: "POLAND"
+                    isHeadquarter: true
+                    swiftCode: "BIGBPLPWXXX"
+                    branches:
+                      - address: "UL. PULAWSKA 15, WARSZAWA, 02-515"
+                        bankName: "BANK MILLENNIUM S.A."
+                        countryISO2: "PL"
+                        countryName: "POLAND"
+                        isHeadquarter: false
+                        swiftCode: "BIGBPLPW001"
+                branch:
+                  summary: Example of branch data
+                  value:
+                    address: "UL. PULAWSKA 15, WARSZAWA, 02-515"
+                    bankName: "BANK MILLENNIUM S.A."
+                    countryISO2: "PL"
+                    countryName: "POLAND"
+                    isHeadquarter: false
+                    swiftCode: "BIGBPLPW001"
+        '400':
+          description: Invalid SWIFT code supplied
+        '404':
+          description: SWIFT code not found
+  /v1/github-repos/{countryISO2code}:
+    get:
+      tags:
+        - swift-codes
+      summary: Find all SWIFT codes by given country ISO2 code
+      description: Returns a single bank SWIFT code
+      operationId: getCountryISO2Code
+      parameters:
+        - name: countryISO2code
+          in: path
+          description: Country ISO2 code of all related banks
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankData'
+              examples:
+                bank:
+                  summary: Example of banks data by given ISO2 code
+                  value:
+                    countryISO2: "PL"
+                    countryName: "POLAND"
+                    swiftCodes:
+                      - address: "UL. PULAWSKA 15, WARSZAWA, 02-515"
+                        bankName: "BANK MILLENNIUM S.A."
+                        countryISO2: "PL"
+                        isHeadquarter: false
+                        swiftCode: "BIGBPLPW001"
+                      - address: "UL. PULAWSKA 15, WARSZAWA, 02-510"
+                        bankName: "BANK MILLENNIUM S.A."
+                        countryISO2: "PL"
+                        isHeadquarter: true
+                        swiftCode: "BIGBPLPWXXX"
+        '400':
+          description: Invalid country ISO2 code supplied
+        '404':
+          description: Country ISO2 code not found
+components:
+  schemas:
+    RepositoryInfo:
+      type: object
+      properties:
+        repositoryName:
+          type: string
+          example: github-repositories
+        ownerLogin:
+          type: string
+          example: SadlowskiJakub
+        branches:
+          type: array
+          items:
+            $ref: '#/components/schemas/RepositoryInfo'
+    BranchInfo:
+      type: object
+      properties:
+        branchName:
+          type: string
+          example: main
+        lastCommitSHA:
+          type: string
+          example: 4a7d1f8ca2b09c3b5d87a3c815bb8765c6a6e33e
+    BankData:
+      type: object
+      properties:
+        address:
+          type: string
+          example: "HARMONY CENTER UL. STANISLAWA ZARYNA 2A WARSZAWA, MAZOWIECKIE, 02-593"
+        bankName:
+          type: string
+          example: "BANK MILLENNIUM S.A."
+        countryISO2:
+          type: string
+          example: "PL"
+        countryName:
+          type: string
+          example: "POLAND"
+        isHeadquarter:
+          type: boolean
+          example: true
+        swiftCode:
+          type: string
+          example: "BIGBPLPWXXX"
+        branches:
+          type: array
+          items:
+            $ref: '#/components/schemas/BankData'
+      xml:
+        name: bankData
