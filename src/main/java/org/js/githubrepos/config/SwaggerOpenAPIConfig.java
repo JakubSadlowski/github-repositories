@@ -5,7 +5,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.servers.Server;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Bean;
@@ -28,11 +27,5 @@ public class SwaggerOpenAPIConfig {
     public OpenAPI customOpenAPI() throws IOException {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         return mapper.readValue(new ClassPathResource("github-repos-open-api.yaml").getInputStream(), OpenAPI.class);
-    }
-
-    private Info apiInfo() {
-        return new Info().title("Github Repositories API")
-            .description("API to list GitHub repositories for a user that are not forks.")
-            .version(createProperties().getVersion());
     }
 }
