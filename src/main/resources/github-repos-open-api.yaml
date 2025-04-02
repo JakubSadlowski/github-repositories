@@ -1,0 +1,84 @@
+openapi: 3.0.3
+info:
+  title: Github Repositories OpenAPI
+  description: |-
+    API to list GitHub repositories for a user that are not forks.
+  contact:
+    name: Jakub Sadłowski
+    email: sadlowski.jakub.work@gmail.com
+    url: https://github.com/SadlowskiJakub
+  version: 1.0.11
+servers:
+  - url: https://localhost:8080/
+tags:
+  - name: github-repositories
+paths:
+  /v1/github-repos/{githubLogin}:
+    get:
+      tags:
+        - github-repositories
+      summary: Find all repositories and branches with their last commit sh by given github login
+      description: Returns all public repositories of the user which are not forks, all of their branches with their last commit sh
+      operationId: getGithubRepos
+      parameters:
+        - name: githubLogin
+          in: path
+          description: Github login of the existing user
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepositoryInfo'
+              examples:
+                repo:
+                  summary: Example of repositories for the given github login
+                  value:
+                    - repositoryName: "github-repositories"
+                      ownerLogin: "SadlowskiJakub"
+                      branches:
+                        - branchName: "main"
+                          lastCommitSHA: "4a7d1f8ca2b09c3b5d87a3c815bb8765c6a6e33e"
+                        - branchName: "feature-api-integration"
+                          lastCommitSHA: "8c23f68d7c87bcd3987a56e9eaf502dce48291f7"
+                    - repositoryName: "spring-boot-app"
+                      ownerLogin: "SadlowskiJakub"
+                      branches:
+                        - branchName: "main"
+                          lastCommitSHA: "92e75d6a8f9c02345ab7c82edf45e6ab12cd37af"
+                        - branchName: "swagger-design"
+                          lastCommitSHA: "7af36b21e90f47de92c5da7b88e4f0ad53c9e78b"
+                        - branchName: "fix-auth-issue"
+                          lastCommitSHA: "3d9c56b78ad21e4f88c9a6b5c7d2e45a9f2b8d1c"
+        '400':
+          description: Invalid github login supplied
+        '404':
+          description: Github login not found
+components:
+  schemas:
+    RepositoryInfo:
+      type: object
+      properties:
+        repositoryName:
+          type: string
+          example: github-repositories
+        ownerLogin:
+          type: string
+          example: SadlowskiJakub
+        branches:
+          type: array
+          items:
+            $ref: '#/components/schemas/BranchInfo'
+    BranchInfo:
+      type: object
+      properties:
+        branchName:
+          type: string
+          example: main
+        lastCommitSHA:
+          type: string
+          example: 4a7d1f8ca2b09c3b5d87a3c815bb8765c6a6e33e
