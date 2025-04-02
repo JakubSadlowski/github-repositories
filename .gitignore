@@ -34,3 +34,6 @@ build/
 
 *.mvnw.cmd
 *.mvnw
+
+### Project ###
+application-dev.properties
