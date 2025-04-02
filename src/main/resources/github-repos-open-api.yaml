@@ -11,20 +11,19 @@ info:
 servers:
   - url: https://localhost:8080/
 tags:
-  - name: swift-codes
-    description: Everything about bank SWIFT codes
+  - name: github-repositories
 paths:
-  /v1/swift-codes/{swift-code}:
+  /v1/github-repos/{githubLogin}:
     get:
       tags:
-        - swift-codes
-      summary: Find single SWIFT code
-      description: Returns a single bank SWIFT code
-      operationId: getSwiftCode
+        - github-repositories
+      summary: Find all repositories and branches with their last commit sh by given github login
+      description: Returns all public repositories of the user which are not forks, all of their branches with their last commit sh
+      operationId: getGithubRepos
       parameters:
-        - name: swift-code
+        - name: githubLogin
           in: path
-          description: SWIFT code of bank headquarter or branch to return
+          description: Github login of the existing user
           required: true
           schema:
             type: string
@@ -34,79 +33,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BankData'
+                $ref: '#/components/schemas/RepositoryInfo'
               examples:
-                headquarter:
-                  summary: Example of headquarter data
+                repo:
+                  summary: Example of repositories for the given github login
                   value:
-                    address: "HARMONY CENTER UL. STANISLAWA ZARYNA 2A WARSZAWA, MAZOWIECKIE, 02-593"
-                    bankName: "BANK MILLENNIUM S.A."
-                    countryISO2: "PL"
-                    countryName: "POLAND"
-                    isHeadquarter: true
-                    swiftCode: "BIGBPLPWXXX"
-                    branches:
-                      - address: "UL. PULAWSKA 15, WARSZAWA, 02-515"
-                        bankName: "BANK MILLENNIUM S.A."
-                        countryISO2: "PL"
-                        countryName: "POLAND"
-                        isHeadquarter: false
-                        swiftCode: "BIGBPLPW001"
-                branch:
-                  summary: Example of branch data
-                  value:
-                    address: "UL. PULAWSKA 15, WARSZAWA, 02-515"
-                    bankName: "BANK MILLENNIUM S.A."
-                    countryISO2: "PL"
-                    countryName: "POLAND"
-                    isHeadquarter: false
-                    swiftCode: "BIGBPLPW001"
+                    - repositoryName: "github-repositories"
+                      ownerLogin: "SadlowskiJakub"
+                      branches:
+                        - branchName: "main"
+                          lastCommitSHA: "4a7d1f8ca2b09c3b5d87a3c815bb8765c6a6e33e"
+                        - branchName: "feature-api-integration"
+                          lastCommitSHA: "8c23f68d7c87bcd3987a56e9eaf502dce48291f7"
+                    - repositoryName: "spring-boot-app"
+                      ownerLogin: "SadlowskiJakub"
+                      branches:
+                        - branchName: "main"
+                          lastCommitSHA: "92e75d6a8f9c02345ab7c82edf45e6ab12cd37af"
+                        - branchName: "swagger-design"
+                          lastCommitSHA: "7af36b21e90f47de92c5da7b88e4f0ad53c9e78b"
+                        - branchName: "fix-auth-issue"
+                          lastCommitSHA: "3d9c56b78ad21e4f88c9a6b5c7d2e45a9f2b8d1c"
         '400':
-          description: Invalid SWIFT code supplied
+          description: Invalid github login supplied
         '404':
-          description: SWIFT code not found
-  /v1/github-repos/{countryISO2code}:
-    get:
-      tags:
-        - swift-codes
-      summary: Find all SWIFT codes by given country ISO2 code
-      description: Returns a single bank SWIFT code
-      operationId: getCountryISO2Code
-      parameters:
-        - name: countryISO2code
-          in: path
-          description: Country ISO2 code of all related banks
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/BankData'
-              examples:
-                bank:
-                  summary: Example of banks data by given ISO2 code
-                  value:
-                    countryISO2: "PL"
-                    countryName: "POLAND"
-                    swiftCodes:
-                      - address: "UL. PULAWSKA 15, WARSZAWA, 02-515"
-                        bankName: "BANK MILLENNIUM S.A."
-                        countryISO2: "PL"
-                        isHeadquarter: false
-                        swiftCode: "BIGBPLPW001"
-                      - address: "UL. PULAWSKA 15, WARSZAWA, 02-510"
-                        bankName: "BANK MILLENNIUM S.A."
-                        countryISO2: "PL"
-                        isHeadquarter: true
-                        swiftCode: "BIGBPLPWXXX"
-        '400':
-          description: Invalid country ISO2 code supplied
-        '404':
-          description: Country ISO2 code not found
+          description: Github login not found
 components:
   schemas:
     RepositoryInfo:
@@ -121,7 +72,7 @@ components:
         branches:
           type: array
           items:
-            $ref: '#/components/schemas/RepositoryInfo'
+            $ref: '#/components/schemas/BranchInfo'
     BranchInfo:
       type: object
       properties:
@@ -131,30 +82,3 @@ components:
         lastCommitSHA:
           type: string
           example: 4a7d1f8ca2b09c3b5d87a3c815bb8765c6a6e33e
-    BankData:
-      type: object
-      properties:
-        address:
-          type: string
-          example: "HARMONY CENTER UL. STANISLAWA ZARYNA 2A WARSZAWA, MAZOWIECKIE, 02-593"
-        bankName:
-          type: string
-          example: "BANK MILLENNIUM S.A."
-        countryISO2:
-          type: string
-          example: "PL"
-        countryName:
-          type: string
-          example: "POLAND"
-        isHeadquarter:
-          type: boolean
-          example: true
-        swiftCode:
-          type: string
-          example: "BIGBPLPWXXX"
-        branches:
-          type: array
-          items:
-            $ref: '#/components/schemas/BankData'
-      xml:
-        name: bankData
