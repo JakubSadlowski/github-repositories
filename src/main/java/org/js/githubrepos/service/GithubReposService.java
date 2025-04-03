@@ -23,31 +23,31 @@ public class GithubReposService {
         this.okHttpClient = client;
     }
 
-    String executeListRepositoriesForUserEndpoint(String url, String repoOwnerLogin) throws IOException {
-        String baseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    public String executeListRepositoriesForUserEndpoint(String username) throws IOException {
+        System.out.println("GitHub Token: " + githubToken);
 
-        Request.Builder requestBuilder = new Request.Builder()
-            .url(baseUrl + "/users/" + repoOwnerLogin + "/repos")
-            .header("Accept", "application/vnd.github.v3+json");
+        Request.Builder requestBuilder = new Request.Builder().url(GITHUB_API_URL_BASE + "/users/" + username + "/repos")
+            .header("Accept", "application/vnd.github+json")
+            .header("X-GitHub-Api-Version", "2022-11-28");
 
-        if (githubToken != null && !githubToken.trim().isEmpty()) {
-            requestBuilder.header("Authorization", "token " + githubToken);
+        if (githubToken != null && !githubToken.trim()
+            .isEmpty()) {
+            requestBuilder.header("Authorization", "Bearer " + githubToken);
         } else {
             System.out.println("WARNING: GitHub token is not configured. Requests are limited to the rate limit of the Github API.");
         }
 
         Request request = requestBuilder.build();
 
-        try (Response response = okHttpClient.newCall(request).execute()) {
+        try (Response response = okHttpClient.newCall(request)
+            .execute()) {
             if (!response.isSuccessful()) {
                 if (response.code() == 404) {
-                    //throw new UserNotFoundException("User not found: " + url.split("/users/")[1].split("/")[0]);
+                    throw new RuntimeException("User not found: " + username);
                 }
 
-                if (response.code() == 403 && response.header("X-RateLimit-Remaining") != null
-                    && Integer.parseInt(response.header("X-RateLimit-Remaining")) == 0) {
-                    /*throw new RateLimitExceededException("GitHub API rate limit exceeded. Reset at: "
-                        + response.header("X-RateLimit-Reset"));*/
+                if (response.code() == 403 && response.header("X-RateLimit-Remaining") != null && Integer.parseInt(response.header("X-RateLimit-Remaining")) == 0) {
+                    throw new RuntimeException("GitHub API rate limit exceeded. Reset at: " + response.header("X-RateLimit-Reset"));
                 }
                 throw new IOException("Unexpected response code: " + response);
             }
@@ -56,7 +56,8 @@ public class GithubReposService {
                 throw new IOException("Empty response body");
             }
 
-            return response.body().string();
+            return response.body()
+                .string();
         }
     }
 }
