@@ -30,26 +30,12 @@ all branches and their last commit sha for the given Github login.
 - Java 21
 - Maven installed
 
-### Github Token Setup
+### Github Token
 
-To get permission for the request from Github REST API and increase your rate limit 
-you need to specify proper Github token in the request.
-
-To achieve this these are the steps to add your token to the service:
-
-### Windows
-Add your token to the environment variable for the terminal session.
-```bash
-  $env:GITHUB_TOKEN="your_github_token_here"
-```
-
-To add it permanently.
-```bash
-  setx GITHUB_TOKEN "your_github_token_here"
-```
+To increase your rate limit you need to specify proper Github token in the request.
 
 ### Build and Run
 
 ```bash
-  mvn clean install
+mvn clean install
 ```

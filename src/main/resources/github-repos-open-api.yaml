@@ -6,7 +6,6 @@ info:
   contact:
     name: Jakub Sadłowski
     email: sadlowski.jakub.work@gmail.com
-    url: https://github.com/SadlowskiJakub
   version: 1.0.11
 servers:
   - url: https://localhost:8080/
@@ -39,14 +38,14 @@ paths:
                   summary: Example of repositories for the given github login
                   value:
                     - repositoryName: "github-repositories"
-                      ownerLogin: "SadlowskiJakub"
+                      ownerLogin: "example"
                       branches:
                         - branchName: "main"
                           lastCommitSHA: "4a7d1f8ca2b09c3b5d87a3c815bb8765c6a6e33e"
                         - branchName: "feature-api-integration"
                           lastCommitSHA: "8c23f68d7c87bcd3987a56e9eaf502dce48291f7"
                     - repositoryName: "spring-boot-app"
-                      ownerLogin: "SadlowskiJakub"
+                      ownerLogin: "example"
                       branches:
                         - branchName: "main"
                           lastCommitSHA: "92e75d6a8f9c02345ab7c82edf45e6ab12cd37af"
