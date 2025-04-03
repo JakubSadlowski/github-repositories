@@ -40,16 +40,16 @@ To achieve this these are the steps to add your token to the service:
 ### Windows
 Add your token to the environment variable for the terminal session.
 ```bash
-  $env:GITHUB_TOKEN="your_github_token_here"
+$env:GITHUB_TOKEN="your_github_token_here"
 ```
 
 To add it permanently.
 ```bash
-  setx GITHUB_TOKEN "your_github_token_here"
+setx GITHUB_TOKEN "your_github_token_here"
 ```
 
 ### Build and Run
 
 ```bash
-  mvn clean install
+mvn clean install
 ```
