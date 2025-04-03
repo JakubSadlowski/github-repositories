@@ -21,7 +21,7 @@ public class GithubRepositoriesController {
     }
 
     @GetMapping("github-repos/{githubLogin}")
-    public ResponseEntity<String> getAllSwiftCodesForSpecificCountry(@PathVariable("githubLogin") String githubLogin) throws IOException {
+    public ResponseEntity<String> getGithubRepositoriesInfo(@PathVariable("githubLogin") String githubLogin) throws IOException {
         return ResponseEntity.ok(githubReposService.executeListRepositoriesForUserEndpoint(githubLogin));
     }
 }
