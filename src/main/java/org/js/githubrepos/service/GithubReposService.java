@@ -13,7 +13,7 @@ import java.io.IOException;
 public class GithubReposService {
     private static final String GITHUB_API_URL_BASE = "https://api.github.com";
 
-    private OkHttpClient okHttpClient;
+    private final OkHttpClient okHttpClient;
 
     @Value("${github.token:${GITHUB_TOKEN:}}")
     private String githubToken;
@@ -24,8 +24,10 @@ public class GithubReposService {
     }
 
     String executeListRepositoriesForUserEndpoint(String url, String repoOwnerLogin) throws IOException {
+        String baseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+
         Request.Builder requestBuilder = new Request.Builder()
-            .url(url + "/users/" + repoOwnerLogin + "/repos")
+            .url(baseUrl + "/users/" + repoOwnerLogin + "/repos")
             .header("Accept", "application/vnd.github.v3+json");
 
         if (githubToken != null && !githubToken.trim().isEmpty()) {
