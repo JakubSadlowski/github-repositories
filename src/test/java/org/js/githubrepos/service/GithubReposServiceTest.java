@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GithubReposServiceTest {
 
@@ -40,13 +40,12 @@ class GithubReposServiceTest {
         String username = "testuser";
         String mockResponseBody = "[{\"name\":\"repo1\",\"full_name\":\"testuser/repo1\"},{\"name\":\"repo2\",\"full_name\":\"testuser/repo2\"}]";
 
-        mockWebServer.enqueue(new MockResponse()
-            .setResponseCode(200)
+        mockWebServer.enqueue(new MockResponse().setResponseCode(200)
             .setHeader("Content-Type", "application/json")
             .setBody(mockResponseBody));
 
         // when
-        String responseBody = githubReposService.executeListRepositoriesForUserEndpoint(username);
+        String responseBody = githubReposService.executeListRepositoriesForUserEndpoint(username, null);
 
         // then
         RecordedRequest recordedRequest = mockWebServer.takeRequest();

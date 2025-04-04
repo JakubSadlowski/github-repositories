@@ -33,8 +33,8 @@ public class GithubReposService {
         this.objectMapper = objectMapper;
     }
 
-    public List<RepositoryInfo> getUserRepositories(String username) throws IOException {
-        String responseBody = executeListRepositoriesForUserEndpoint(username);
+    public List<RepositoryInfo> getUserRepositories(String username, String bearerToken) throws IOException {
+        String responseBody = executeListRepositoriesForUserEndpoint(username, bearerToken);
 
         List<Map<String, Object>> repositories = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
         });
@@ -77,11 +77,13 @@ public class GithubReposService {
         }
     }
 
-    String executeListRepositoriesForUserEndpoint(String username) throws IOException {
+    String executeListRepositoriesForUserEndpoint(String githubLogin, String bearerToken) throws IOException {
 
-        Request.Builder requestBuilder = new Request.Builder().url(GITHUB_API_URL_BASE + "/users/" + username + "/repos")
+        Request.Builder requestBuilder = new Request.Builder().url(GITHUB_API_URL_BASE + "/users/" + githubLogin + "/repos")
             .header("Accept", "application/vnd.github+json")
             .header("X-GitHub-Api-Version", "2022-11-28");
+
+        requestBuilder.header("Authorization", "Bearer " + bearerToken);
 
         Request request = requestBuilder.build();
 
@@ -89,10 +91,11 @@ public class GithubReposService {
             .execute()) {
             if (!response.isSuccessful()) {
                 if (response.code() == 404) {
-                    throw new GithubLoginNotFoundException("Github login for given user not found: " + username);
+                    throw new GithubLoginNotFoundException("Github login for given user not found: " + githubLogin);
                 }
 
-                if (response.code() == 403 && response.header("X-RateLimit-Remaining") != null && Integer.parseInt(response.header("X-RateLimit-Remaining")) == 0) {
+                if (response.code() == 403 && response.header("X-RateLimit-Remaining") != null
+                    && Integer.parseInt(response.header("X-RateLimit-Remaining")) == 0) {
                     throw new RuntimeException("GitHub API rate limit exceeded. Reset at: " + response.header("X" + "-RateLimit-Reset"));
                 }
 

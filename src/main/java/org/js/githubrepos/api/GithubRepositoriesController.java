@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
@@ -32,8 +33,9 @@ public class GithubRepositoriesController {
     }
 
     @GetMapping("github-repos/{githubLogin}")
-    public ResponseEntity<List<RepositoryInfo>> getGithubRepositoriesInfo(@PathVariable("githubLogin") String githubLogin) throws IOException {
-        return ResponseEntity.ok(githubReposService.getUserRepositories(githubLogin));
+    public ResponseEntity<List<RepositoryInfo>> getGithubRepositoriesInfo(@PathVariable("githubLogin") String githubLogin,
+        @RequestHeader(name = "Authorization", required = false) String bearerToken) throws IOException {
+        return ResponseEntity.ok(githubReposService.getUserRepositories(githubLogin, bearerToken));
     }
 
     @ExceptionHandler(GithubLoginNotFoundException.class)
