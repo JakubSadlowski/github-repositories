@@ -1,5 +1,6 @@
 package org.js.githubrepos.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
@@ -23,7 +24,8 @@ class GithubReposServiceTest {
         mockWebServer = new MockWebServer();
         mockWebServer.start();
         OkHttpClient client = new OkHttpClient();
-        githubReposService = new GithubReposService(client);
+        ObjectMapper objectMapper = new ObjectMapper();
+        githubReposService = new GithubReposService(client, objectMapper);
     }
 
     @AfterEach
