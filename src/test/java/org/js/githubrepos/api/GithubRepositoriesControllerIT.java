@@ -1,7 +1,7 @@
 package org.js.githubrepos.api;
 
-
 import lombok.extern.apachecommons.CommonsLog;
+import org.jetbrains.annotations.NotNull;
 import org.js.githubrepos.api.model.BranchInfo;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.junit.jupiter.api.Assertions;
@@ -10,15 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
 import java.util.Objects;
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@ComponentScan(basePackages = {"org.js.githubrepos.config"})
 @CommonsLog
 class GithubRepositoriesControllerIT {
     private static final String GET_URL_TO_TEST = "/v1/github-repos/{login}";
@@ -29,10 +31,9 @@ class GithubRepositoriesControllerIT {
     @Test
     void checkoutInvalidRequestWithTwoTheSameItems_returnsBadRequest() {
         // Given
-        String login = "nonExistingUser";
+        String url = makeUrl("loginNotExisting");
 
         // When
-        String url = UriComponentsBuilder.fromPath(GET_URL_TO_TEST).buildAndExpand(login).toUriString();
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
         // Then
@@ -42,14 +43,12 @@ class GithubRepositoriesControllerIT {
     @Test
     void shouldReturnRepositoriesWhenUserExists() {
         // Given
-        String login = "JakubSadlowski";
+        String url = makeUrl("JakubSadlowski");
 
         // When
-        String url = UriComponentsBuilder.fromPath(GET_URL_TO_TEST).buildAndExpand(login).toUriString();
         HttpEntity<Void> entity = new HttpEntity<>(null, new HttpHeaders());
-        ResponseEntity<List<RepositoryInfo>> response = restTemplate.exchange(url, HttpMethod.GET, entity,
-                new ParameterizedTypeReference<>() {
-                });
+        ResponseEntity<List<RepositoryInfo>> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
+        });
         log.debug(getGithubRepositoriesInfoToString(Objects.requireNonNull(response.getBody())));
 
         // Then
@@ -69,17 +68,28 @@ class GithubRepositoriesControllerIT {
         }
     }
 
+    @NotNull
+    private static String makeUrl(String githubLogin) {
+        return UriComponentsBuilder.fromPath(GET_URL_TO_TEST)
+            .buildAndExpand(githubLogin)
+            .toUriString();
+    }
+
     private static String getGithubRepositoriesInfoToString(List<RepositoryInfo> repositories) {
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         for (RepositoryInfo repository : repositories) {
-            sb.append("repository=").append(repository.getRepositoryName())
-                    .append(", owner=").append(repository.getOwnerLogin())
-                    .append("\n");
+            sb.append("repository=")
+                .append(repository.getRepositoryName())
+                .append(", owner=")
+                .append(repository.getOwnerLogin())
+                .append("\n");
             for (BranchInfo branch : repository.getBranches()) {
-                sb.append("\tbranch=").append(branch.getBranchName())
-                        .append(",lastCommitSHA=").append(branch.getLastCommitSHA())
-                        .append("\n");
+                sb.append("\tbranch=")
+                    .append(branch.getBranchName())
+                    .append(",lastCommitSHA=")
+                    .append(branch.getLastCommitSHA())
+                    .append("\n");
             }
         }
         return sb.toString();

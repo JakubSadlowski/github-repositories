@@ -4,12 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.apachecommons.CommonsLog;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import org.apache.coyote.BadRequestException;
 import org.js.githubrepos.api.model.BranchInfo;
 import org.js.githubrepos.api.model.RepositoryInfo;
-import org.js.githubrepos.service.exceptions.GithubLoginNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,19 +18,17 @@ import java.util.stream.Collectors;
 @CommonsLog
 @Service
 public class GithubReposService {
-    private static final String GITHUB_API_URL_BASE = "https://api.github.com";
-
-    private final OkHttpClient okHttpClient;
     private final ObjectMapper objectMapper;
+    private final GithubHttpClient githubHttpClient;
 
     @Autowired
-    public GithubReposService(OkHttpClient client, ObjectMapper objectMapper) {
-        this.okHttpClient = client;
+    public GithubReposService(OkHttpClient client, ObjectMapper objectMapper, GithubHttpClient githubHttpClient) {
         this.objectMapper = objectMapper;
+        this.githubHttpClient = githubHttpClient;
     }
 
     public List<RepositoryInfo> getUserRepositories(String username, String bearerToken) throws IOException {
-        String responseBody = executeListRepositoriesForUserEndpoint(username, bearerToken);
+        String responseBody = githubHttpClient.callGithubRepositories(username, bearerToken);
 
         List<Map<String, Object>> repositories = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
         });
@@ -44,7 +38,7 @@ public class GithubReposService {
             .map(repo -> {
                 String repoName = (String) repo.get("name");
                 String ownerLogin = (String) ((Map<String, Object>) repo.get("owner")).get("login");
-                List<BranchInfo> branches = getBranchesForRepo(ownerLogin, repoName);
+                List<BranchInfo> branches = getBranchesForRepo(ownerLogin, repoName, bearerToken);
                 return RepositoryInfo.builder()
                     .repositoryName(repoName)
                     .ownerLogin(ownerLogin)
@@ -54,9 +48,9 @@ public class GithubReposService {
             .collect(Collectors.toList());
     }
 
-    List<BranchInfo> getBranchesForRepo(String owner, String repoName) {
+    List<BranchInfo> getBranchesForRepo(String owner, String repoName, String bearerToken) {
         try {
-            String responseBody = executeListBranchesForUserRepositoryEndpoint(owner, repoName);
+            String responseBody = githubHttpClient.callGithubBranches(owner, repoName, bearerToken);
 
             List<Map<String, Object>> branches = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
             });
@@ -77,61 +71,4 @@ public class GithubReposService {
         }
     }
 
-    String executeListRepositoriesForUserEndpoint(String githubLogin, String bearerToken) throws IOException {
-
-        Request.Builder requestBuilder = new Request.Builder().url(GITHUB_API_URL_BASE + "/users/" + githubLogin + "/repos")
-            .header("Accept", "application/vnd.github+json")
-            .header("X-GitHub-Api-Version", "2022-11-28");
-
-        requestBuilder.header("Authorization", "Bearer " + bearerToken);
-
-        Request request = requestBuilder.build();
-
-        try (Response response = okHttpClient.newCall(request)
-            .execute()) {
-            if (!response.isSuccessful()) {
-                if (response.code() == 404) {
-                    throw new GithubLoginNotFoundException("Github login for given user not found: " + githubLogin);
-                }
-
-                if (response.code() == 403 && response.header("X-RateLimit-Remaining") != null
-                    && Integer.parseInt(response.header("X-RateLimit-Remaining")) == 0) {
-                    throw new RuntimeException("GitHub API rate limit exceeded. Reset at: " + response.header("X" + "-RateLimit-Reset"));
-                }
-
-                throw new IOException("Unexpected response code: " + response);
-            }
-
-            if (response.body() == null) {
-                throw new BadRequestException("Provided input is empty.");
-            }
-
-            return response.body()
-                .string();
-        }
-    }
-
-    String executeListBranchesForUserRepositoryEndpoint(String username, String repoName) throws IOException {
-        String branchesUrl = GITHUB_API_URL_BASE + "/repos/" + username + "/" + repoName + "/branches";
-
-        Request.Builder requestBuilder = new Request.Builder().url(branchesUrl)
-            .header("Accept", "application/vnd.github+json")
-            .header("X-GitHub-Api-Version", "2022-11-28");
-
-        Request request = requestBuilder.build();
-
-        try (Response response = okHttpClient.newCall(request)
-            .execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Unexpected response code: " + response.code());
-            }
-
-            if (response.body() == null) {
-                throw new BadRequestException("Provided input is empty.");
-            }
-
-            return response.body()
-                .string();
-        }
-    }
 }
