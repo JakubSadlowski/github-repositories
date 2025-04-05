@@ -1,13 +1,16 @@
 package org.js.githubrepos.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.apachecommons.CommonsLog;
-import okhttp3.OkHttpClient;
-import org.js.githubrepos.api.mappers.GithubReposResponseMapper;
+import org.jetbrains.annotations.NotNull;
 import org.js.githubrepos.api.model.BranchInfo;
 import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
+import org.js.githubrepos.service.errors.ServiceGeneralException;
+import org.js.githubrepos.service.json_mappers.RepositoryBranchMapper;
+import org.js.githubrepos.service.json_mappers.RepositoryInfoMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -23,42 +26,55 @@ public class GithubReposService {
     private final GithubHttpClient githubHttpClient;
 
     @Autowired
-    public GithubReposService(OkHttpClient client, ObjectMapper objectMapper, GithubHttpClient githubHttpClient) {
+    public GithubReposService(ObjectMapper objectMapper, GithubHttpClient githubHttpClient) {
         this.objectMapper = objectMapper;
         this.githubHttpClient = githubHttpClient;
     }
 
     public GithubRepositoryResponse getUserRepositories(String username, String bearerToken) throws IOException {
-        String responseBody = githubHttpClient.callGithubRepositories(username, bearerToken);
+        String githubRepositoriesJson = githubHttpClient.getGithubRepositories(username, bearerToken);
 
-        List<Map<String, Object>> repositories = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
-        });
+        List<RepositoryInfo> repositoriesInfoList = mapToRepositoriesInfoList(bearerToken, githubRepositoriesJson);
 
-        List<RepositoryInfo> repositoryInfoList = repositories.stream()
-            .filter(GithubReposResponseMapper::isNotFork)
-            .map(repo -> {
-                String repoName = (String) repo.get("name");
-                String ownerLogin = (String) ((Map<String, Object>) repo.get("owner")).get("login");
-                List<BranchInfo> branches = getBranchesForRepo(ownerLogin, repoName, bearerToken);
-
-                return GithubReposResponseMapper.mapToRepositoryInfo(repo, branches);
-            })
-            .toList();
-
-        return GithubReposResponseMapper.mapToGithubReposResponse(repositoryInfoList);
+        return GithubRepositoryResponse.builder()
+            .repositoryList(repositoriesInfoList)
+            .build();
     }
 
-    List<BranchInfo> getBranchesForRepo(String owner, String repoName, String bearerToken) {
+    @NotNull
+    private List<RepositoryInfo> mapToRepositoriesInfoList(String bearerToken, String githubRepositoriesJson) {
+        List<Map<String, Object>> repositoriesRaw = mapJsonToMap(githubRepositoriesJson);
+
+        List<RepositoryInfo> repositoriesInfoList = new ArrayList<>();
+        for (Map<String, Object> repositoryMap : repositoriesRaw) {
+            if (isFork(repositoryMap))
+                continue;
+            RepositoryInfo repository = RepositoryInfoMapper.mapToRepositoryInfo(repositoryMap);
+            List<BranchInfo> branches = getRepositoryBranches(repository.getOwnerLogin(), repository.getRepositoryName(), bearerToken);
+            repository.getBranches()
+                .addAll(branches);
+            repositoriesInfoList.add(repository);
+        }
+        return repositoriesInfoList;
+    }
+
+    public static boolean isFork(Map<String, Object> repo) {
+        Object forkObj = repo.get("fork");
+        return ((boolean) forkObj);
+    }
+
+    List<BranchInfo> getRepositoryBranches(String owner, String repoName, String bearerToken) {
+        String responseBody = githubHttpClient.callGithubBranches(owner, repoName, bearerToken);
+        List<Map<String, Object>> branches = mapJsonToMap(responseBody);
+        return RepositoryBranchMapper.mapToBranchesList(branches);
+    }
+
+    private List<Map<String, Object>> mapJsonToMap(String json) {
         try {
-            String responseBody = githubHttpClient.callGithubBranches(owner, repoName, bearerToken);
-
-            List<Map<String, Object>> branches = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
+            return objectMapper.readValue(json, new TypeReference<>() {
             });
-
-            return GithubReposResponseMapper.mapToBranchInfoList(branches);
-        } catch (IOException e) {
-            log.error("Error fetching branches for repo " + owner + "/" + repoName, e);
-            return new ArrayList<>();
+        } catch (JsonProcessingException e) {
+            throw new ServiceGeneralException(String.format("Failed to map JSON [%s]", json), e);
         }
     }
 }

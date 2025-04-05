@@ -6,10 +6,10 @@ import lombok.ToString;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import org.js.githubrepos.api.validation.BadRequestException;
-import org.js.githubrepos.api.validation.ServiceGeneralException;
 import org.js.githubrepos.config.GithubConfig;
-import org.js.githubrepos.service.exceptions.GithubLoginNotFoundException;
+import org.js.githubrepos.service.errors.BadRequestException;
+import org.js.githubrepos.service.errors.GithubLoginNotFoundException;
+import org.js.githubrepos.service.errors.ServiceGeneralException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -25,7 +25,7 @@ public class GithubHttpClient {
         this.okHttpClient = okHttpClient;
     }
 
-    public String callGithubRepositories(String githubLogin, String bearerToken) throws IOException {
+    public String getGithubRepositories(String githubLogin, String bearerToken) throws IOException {
         String url = githubConfig.getUrlOfGithubServer() + "/users/" + githubLogin + "/repos";
 
         StringResponse response = callUrlUsingOkHttp(url, bearerToken);
@@ -36,7 +36,7 @@ public class GithubHttpClient {
         return response.getBody();
     }
 
-    String callGithubBranches(String username, String repoName, String bearerToken) throws IOException {
+    String callGithubBranches(String username, String repoName, String bearerToken) {
         String url = githubConfig.getUrlOfGithubServer() + "/repos/" + username + "/" + repoName + "/branches";
 
         StringResponse response = callUrlUsingOkHttp(url, bearerToken);

@@ -11,10 +11,10 @@ public class OkHttpConfig {
 
     @Bean
     public OkHttpClient okHttpClient() {
-        return new OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
+        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
             .writeTimeout(30, TimeUnit.SECONDS)
+            .pingInterval(30, TimeUnit.SECONDS)
             .build();
     }
 }
