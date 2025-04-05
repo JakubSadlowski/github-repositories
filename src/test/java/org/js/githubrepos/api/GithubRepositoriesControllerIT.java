@@ -3,7 +3,7 @@ package org.js.githubrepos.api;
 import lombok.extern.apachecommons.CommonsLog;
 import org.jetbrains.annotations.NotNull;
 import org.js.githubrepos.api.model.BranchInfo;
-import org.js.githubrepos.api.model.GithubReposResponse;
+import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ class GithubRepositoriesControllerIT {
     private TestRestTemplate restTemplate;
 
     @Test
-    void checkoutInvalidRequestWithTwoTheSameItems_returnsBadRequest() {
+    void shouldReturnNotFoundStatusWhenUserDoesNotExist() {
         // Given
         String url = makeUrl("loginNotExisting");
 
@@ -48,7 +48,7 @@ class GithubRepositoriesControllerIT {
 
         // When
         HttpEntity<Void> entity = new HttpEntity<>(null, new HttpHeaders());
-        ResponseEntity<GithubReposResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
+        ResponseEntity<GithubRepositoryResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
         });
         log.debug(getGithubRepositoriesInfoToString(Objects.requireNonNull(response.getBody().getRepositoryList())));
 

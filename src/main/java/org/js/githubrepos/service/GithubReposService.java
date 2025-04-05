@@ -4,8 +4,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.apachecommons.CommonsLog;
 import okhttp3.OkHttpClient;
+import org.js.githubrepos.api.mappers.GithubReposResponseMapper;
 import org.js.githubrepos.api.model.BranchInfo;
-import org.js.githubrepos.api.model.GithubReposResponse;
+import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,7 +15,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @CommonsLog
 @Service
@@ -28,27 +28,24 @@ public class GithubReposService {
         this.githubHttpClient = githubHttpClient;
     }
 
-    public GithubReposResponse getUserRepositories(String username, String bearerToken) throws IOException {
+    public GithubRepositoryResponse getUserRepositories(String username, String bearerToken) throws IOException {
         String responseBody = githubHttpClient.callGithubRepositories(username, bearerToken);
 
         List<Map<String, Object>> repositories = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
         });
 
-        return GithubReposResponse.builder()
-            .repositoryList(repositories.stream()
-                .filter(repo -> !(boolean) repo.get("fork"))
-                .map(repo -> {
-                    String repoName = (String) repo.get("name");
-                    String ownerLogin = (String) ((Map<String, Object>) repo.get("owner")).get("login");
-                    List<BranchInfo> branches = getBranchesForRepo(ownerLogin, repoName, bearerToken);
-                    return RepositoryInfo.builder()
-                        .repositoryName(repoName)
-                        .ownerLogin(ownerLogin)
-                        .branches(branches)
-                        .build();
-                })
-                .collect(Collectors.toList()))
-            .build();
+        List<RepositoryInfo> repositoryInfoList = repositories.stream()
+            .filter(GithubReposResponseMapper::isNotFork)
+            .map(repo -> {
+                String repoName = (String) repo.get("name");
+                String ownerLogin = (String) ((Map<String, Object>) repo.get("owner")).get("login");
+                List<BranchInfo> branches = getBranchesForRepo(ownerLogin, repoName, bearerToken);
+
+                return GithubReposResponseMapper.mapToRepositoryInfo(repo, branches);
+            })
+            .toList();
+
+        return GithubReposResponseMapper.mapToGithubReposResponse(repositoryInfoList);
     }
 
     List<BranchInfo> getBranchesForRepo(String owner, String repoName, String bearerToken) {
@@ -58,20 +55,10 @@ public class GithubReposService {
             List<Map<String, Object>> branches = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
             });
 
-            return branches.stream()
-                .map(branch -> {
-                    String branchName = (String) branch.get("name");
-                    String commitSha = (String) ((Map<String, Object>) branch.get("commit")).get("sha");
-                    return BranchInfo.builder()
-                        .branchName(branchName)
-                        .lastCommitSHA(commitSha)
-                        .build();
-                })
-                .collect(Collectors.toList());
+            return GithubReposResponseMapper.mapToBranchInfoList(branches);
         } catch (IOException e) {
             log.error("Error fetching branches for repo " + owner + "/" + repoName, e);
             return new ArrayList<>();
         }
     }
-
 }

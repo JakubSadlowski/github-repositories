@@ -2,8 +2,7 @@ package org.js.githubrepos.api;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.js.githubrepos.api.model.Error;
-import org.js.githubrepos.api.model.GithubReposResponse;
-import org.js.githubrepos.api.model.RepositoryInfo;
+import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.validation.BadRequestException;
 import org.js.githubrepos.service.GithubReposService;
 import org.js.githubrepos.service.exceptions.GithubLoginNotFoundException;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 
 import java.io.IOException;
-import java.util.List;
 
 @CommonsLog
 @RestController
@@ -34,8 +32,8 @@ public class GithubRepositoriesController {
     }
 
     @GetMapping("github-repos/{githubLogin}")
-    public ResponseEntity<GithubReposResponse> getGithubRepositoriesInfo(@PathVariable("githubLogin") String githubLogin,
-        @RequestHeader(name = "Authorization", required = false) String bearerToken) throws IOException {
+    public ResponseEntity<GithubRepositoryResponse> getGithubRepositoriesInfo(@PathVariable("githubLogin") String githubLogin,
+        @RequestHeader(name = "githubToken", required = false) String bearerToken) throws IOException {
         return ResponseEntity.ok(githubReposService.getUserRepositories(githubLogin, bearerToken));
     }
 
