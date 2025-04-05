@@ -1,6 +1,4 @@
-package org.js.githubrepos.service.exceptions;
-
-import org.js.githubrepos.api.validation.ServiceGeneralException;
+package org.js.githubrepos.service.errors;
 
 public class GithubUnauthorizedException extends ServiceGeneralException {
     public GithubUnauthorizedException(String message) {

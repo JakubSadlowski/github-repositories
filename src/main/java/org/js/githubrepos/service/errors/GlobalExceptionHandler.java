@@ -1,4 +1,4 @@
-package org.js.githubrepos.api.validation;
+package org.js.githubrepos.service.errors;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.js.githubrepos.api.model.Error;

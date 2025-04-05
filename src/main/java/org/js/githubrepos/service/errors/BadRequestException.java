@@ -1,4 +1,4 @@
-package org.js.githubrepos.api.validation;
+package org.js.githubrepos.service.errors;
 
 public class BadRequestException extends ServiceGeneralException {
     public BadRequestException(String message) {
