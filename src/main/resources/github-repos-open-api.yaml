@@ -26,6 +26,12 @@ paths:
           required: true
           schema:
             type: string
+        - name: githubToken
+          in: header
+          description: By default access to Github is limited to about 60 requests per hour. Thanks to using the Github token the limit is increased to 5000 requests per hour.
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: successful operation
@@ -53,8 +59,6 @@ paths:
                           lastCommitSHA: "7af36b21e90f47de92c5da7b88e4f0ad53c9e78b"
                         - branchName: "fix-auth-issue"
                           lastCommitSHA: "3d9c56b78ad21e4f88c9a6b5c7d2e45a9f2b8d1c"
-        '400':
-          description: Invalid github login supplied
         '404':
           description: Github login not found
 components:
@@ -67,7 +71,7 @@ components:
           example: github-repositories
         ownerLogin:
           type: string
-          example: SadlowskiJakub
+          example: user12
         branches:
           type: array
           items:
