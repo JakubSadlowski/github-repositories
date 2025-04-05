@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.js.githubrepos.api.model.BranchInfo;
 import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,7 +18,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
-import java.util.Objects;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @CommonsLog
@@ -38,7 +40,7 @@ class GithubRepositoriesControllerIT {
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
         // Then
-        Assertions.assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
@@ -50,21 +52,23 @@ class GithubRepositoriesControllerIT {
         HttpEntity<Void> entity = new HttpEntity<>(null, new HttpHeaders());
         ResponseEntity<GithubRepositoryResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
         });
-        log.debug(getGithubRepositoriesInfoToString(Objects.requireNonNull(response.getBody().getRepositoryList())));
+        log.debug(response.getBody());
 
         // Then
-        Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<RepositoryInfo> repositories = response.getBody().getRepositoryList();
-        Assertions.assertNotNull(repositories);
-        Assertions.assertFalse(repositories.isEmpty());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        List<RepositoryInfo> repositories = response.getBody()
+            .getRepositoryList();
+        assertNotNull(repositories);
+        assertFalse(repositories.isEmpty());
         for (RepositoryInfo repository : repositories) {
-            Assertions.assertNotNull(repository.getRepositoryName());
-            Assertions.assertNotNull(repository.getOwnerLogin());
+            assertNotNull(repository.getRepositoryName());
+            assertNotNull(repository.getOwnerLogin());
             List<BranchInfo> branches = repository.getBranches();
-            Assertions.assertFalse(branches.isEmpty());
+            assertFalse(branches.isEmpty());
             for (BranchInfo branch : branches) {
-                Assertions.assertNotNull(branch.getBranchName());
-                Assertions.assertNotNull(branch.getLastCommitSHA());
+                assertNotNull(branch.getBranchName());
+                assertNotNull(branch.getLastCommitSHA());
             }
         }
     }
@@ -76,23 +80,4 @@ class GithubRepositoriesControllerIT {
             .toUriString();
     }
 
-    private static String getGithubRepositoriesInfoToString(List<RepositoryInfo> repositories) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n");
-        for (RepositoryInfo repository : repositories) {
-            sb.append("repository=")
-                .append(repository.getRepositoryName())
-                .append(", owner=")
-                .append(repository.getOwnerLogin())
-                .append("\n");
-            for (BranchInfo branch : repository.getBranches()) {
-                sb.append("\tbranch=")
-                    .append(branch.getBranchName())
-                    .append(",lastCommitSHA=")
-                    .append(branch.getLastCommitSHA())
-                    .append("\n");
-            }
-        }
-        return sb.toString();
-    }
 }

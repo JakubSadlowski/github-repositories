@@ -13,4 +13,24 @@ import java.util.List;
 @AllArgsConstructor
 public class GithubRepositoryResponse {
     List<RepositoryInfo> repositoryList;
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n");
+        for (RepositoryInfo repository : repositoryList) {
+            sb.append("repository=")
+                .append(repository.getRepositoryName())
+                .append(", owner=")
+                .append(repository.getOwnerLogin())
+                .append("\n");
+            for (BranchInfo branch : repository.getBranches()) {
+                sb.append("\tbranch=")
+                    .append(branch.getBranchName())
+                    .append(",lastCommitSHA=")
+                    .append(branch.getLastCommitSHA())
+                    .append("\n");
+            }
+        }
+        return sb.toString();
+    }
 }
