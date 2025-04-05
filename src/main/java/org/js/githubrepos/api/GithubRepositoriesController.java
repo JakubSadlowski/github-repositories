@@ -2,6 +2,7 @@ package org.js.githubrepos.api;
 
 import lombok.extern.apachecommons.CommonsLog;
 import org.js.githubrepos.api.model.Error;
+import org.js.githubrepos.api.model.GithubReposResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.js.githubrepos.api.validation.BadRequestException;
 import org.js.githubrepos.service.GithubReposService;
@@ -33,7 +34,7 @@ public class GithubRepositoriesController {
     }
 
     @GetMapping("github-repos/{githubLogin}")
-    public ResponseEntity<List<RepositoryInfo>> getGithubRepositoriesInfo(@PathVariable("githubLogin") String githubLogin,
+    public ResponseEntity<GithubReposResponse> getGithubRepositoriesInfo(@PathVariable("githubLogin") String githubLogin,
         @RequestHeader(name = "Authorization", required = false) String bearerToken) throws IOException {
         return ResponseEntity.ok(githubReposService.getUserRepositories(githubLogin, bearerToken));
     }

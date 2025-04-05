@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.apachecommons.CommonsLog;
 import okhttp3.OkHttpClient;
 import org.js.githubrepos.api.model.BranchInfo;
+import org.js.githubrepos.api.model.GithubReposResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,25 +28,27 @@ public class GithubReposService {
         this.githubHttpClient = githubHttpClient;
     }
 
-    public List<RepositoryInfo> getUserRepositories(String username, String bearerToken) throws IOException {
+    public GithubReposResponse getUserRepositories(String username, String bearerToken) throws IOException {
         String responseBody = githubHttpClient.callGithubRepositories(username, bearerToken);
 
         List<Map<String, Object>> repositories = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {
         });
 
-        return repositories.stream()
-            .filter(repo -> !(boolean) repo.get("fork"))
-            .map(repo -> {
-                String repoName = (String) repo.get("name");
-                String ownerLogin = (String) ((Map<String, Object>) repo.get("owner")).get("login");
-                List<BranchInfo> branches = getBranchesForRepo(ownerLogin, repoName, bearerToken);
-                return RepositoryInfo.builder()
-                    .repositoryName(repoName)
-                    .ownerLogin(ownerLogin)
-                    .branches(branches)
-                    .build();
-            })
-            .collect(Collectors.toList());
+        return GithubReposResponse.builder()
+            .repositoryList(repositories.stream()
+                .filter(repo -> !(boolean) repo.get("fork"))
+                .map(repo -> {
+                    String repoName = (String) repo.get("name");
+                    String ownerLogin = (String) ((Map<String, Object>) repo.get("owner")).get("login");
+                    List<BranchInfo> branches = getBranchesForRepo(ownerLogin, repoName, bearerToken);
+                    return RepositoryInfo.builder()
+                        .repositoryName(repoName)
+                        .ownerLogin(ownerLogin)
+                        .branches(branches)
+                        .build();
+                })
+                .collect(Collectors.toList()))
+            .build();
     }
 
     List<BranchInfo> getBranchesForRepo(String owner, String repoName, String bearerToken) {

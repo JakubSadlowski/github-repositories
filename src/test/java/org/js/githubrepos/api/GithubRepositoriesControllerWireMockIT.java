@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.extern.apachecommons.CommonsLog;
 import org.jetbrains.annotations.NotNull;
 import org.js.githubrepos.api.model.BranchInfo;
+import org.js.githubrepos.api.model.GithubReposResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.js.githubrepos.config.GithubConfig;
 import org.junit.jupiter.api.Assertions;
@@ -45,10 +46,10 @@ class GithubRepositoriesControllerWireMockIT {
     private static final String GET_URL_TO_TEST = "/v1/github-repos/{login}";
 
     @MockBean
-    private GithubConfig githubConfig; // Mocked instance
+    private GithubConfig githubConfig;
 
     @InjectMocks
-    private GithubRepositoriesController githubRepositoriesController; // Controller with mock injected
+    private GithubRepositoriesController githubRepositoriesController;
 
     @RegisterExtension
     static WireMockExtension wireMock = WireMockExtension.newInstance()
@@ -86,13 +87,13 @@ class GithubRepositoriesControllerWireMockIT {
         when(githubConfig.getUrlOfGithubServer()).thenReturn(WIREMOCK_TEST_SERVER);
         // When
         HttpEntity<Void> entity = new HttpEntity<>(null, new HttpHeaders());
-        ResponseEntity<List<RepositoryInfo>> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
+        ResponseEntity<GithubReposResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
         });
-        log.debug(getGithubRepositoriesInfoToString(Objects.requireNonNull(response.getBody())));
+        log.debug(getGithubRepositoriesInfoToString(Objects.requireNonNull(response.getBody().getRepositoryList())));
 
         // Then
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<RepositoryInfo> repositories = response.getBody();
+        List<RepositoryInfo> repositories = response.getBody().getRepositoryList();
         Assertions.assertNotNull(repositories);
         Assertions.assertFalse(repositories.isEmpty());
         for (RepositoryInfo repository : repositories) {
