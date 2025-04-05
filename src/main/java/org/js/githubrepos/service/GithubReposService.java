@@ -6,7 +6,7 @@ import lombok.extern.apachecommons.CommonsLog;
 import okhttp3.OkHttpClient;
 import org.js.githubrepos.api.mappers.GithubReposResponseMapper;
 import org.js.githubrepos.api.model.BranchInfo;
-import org.js.githubrepos.api.model.GithubReposResponse;
+import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class GithubReposService {
         this.githubHttpClient = githubHttpClient;
     }
 
-    public GithubReposResponse getUserRepositories(String username, String bearerToken) throws IOException {
+    public GithubRepositoryResponse getUserRepositories(String username, String bearerToken) throws IOException {
         String responseBody = githubHttpClient.callGithubRepositories(username, bearerToken);
 
         List<Map<String, Object>> repositories = objectMapper.readValue(responseBody, new TypeReference<List<Map<String, Object>>>() {

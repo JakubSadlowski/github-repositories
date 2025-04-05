@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.extern.apachecommons.CommonsLog;
 import org.jetbrains.annotations.NotNull;
 import org.js.githubrepos.api.model.BranchInfo;
-import org.js.githubrepos.api.model.GithubReposResponse;
+import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 import org.js.githubrepos.config.GithubConfig;
 import org.junit.jupiter.api.Assertions;
@@ -69,10 +69,11 @@ class GithubRepositoriesControllerWireMockIT {
     }
 
     @Test
-    void checkoutInvalidRequestWithTwoTheSameItems_returnsBadRequest() {
+    void shouldReturnNotFoundStatusWhenUserDoesNotExist() {
         // Given
         String url = makeUrl("nonExistingUser");
         when(githubConfig.getUrlOfGithubServer()).thenReturn(WIREMOCK_TEST_SERVER);
+
         // When
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
 
@@ -87,13 +88,15 @@ class GithubRepositoriesControllerWireMockIT {
         when(githubConfig.getUrlOfGithubServer()).thenReturn(WIREMOCK_TEST_SERVER);
         // When
         HttpEntity<Void> entity = new HttpEntity<>(null, new HttpHeaders());
-        ResponseEntity<GithubReposResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
+        ResponseEntity<GithubRepositoryResponse> response = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<>() {
         });
-        log.debug(getGithubRepositoriesInfoToString(Objects.requireNonNull(response.getBody().getRepositoryList())));
+        log.debug(getGithubRepositoriesInfoToString(Objects.requireNonNull(response.getBody()
+            .getRepositoryList())));
 
         // Then
         Assertions.assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<RepositoryInfo> repositories = response.getBody().getRepositoryList();
+        List<RepositoryInfo> repositories = response.getBody()
+            .getRepositoryList();
         Assertions.assertNotNull(repositories);
         Assertions.assertFalse(repositories.isEmpty());
         for (RepositoryInfo repository : repositories) {
@@ -136,13 +139,7 @@ class GithubRepositoriesControllerWireMockIT {
     }
 
     @Builder
-    private static class MockGithub {
-        private final WireMockExtension wireMock;
-
-        private MockGithub(WireMockExtension wireMock) {
-            this.wireMock = wireMock;
-        }
-
+    private record MockGithub(WireMockExtension wireMock) {
         void mockResponses() {
             mockGetRepositoriesForNonExistingGithubUser();
             mockGetRepositoriesForExistingGithubUser();

@@ -11,6 +11,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GithubReposResponse {
+public class GithubRepositoryResponse {
     List<RepositoryInfo> repositoryList;
 }

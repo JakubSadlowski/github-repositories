@@ -1,7 +1,7 @@
 package org.js.githubrepos.api.mappers;
 
 import org.js.githubrepos.api.model.BranchInfo;
-import org.js.githubrepos.api.model.GithubReposResponse;
+import org.js.githubrepos.api.model.GithubRepositoryResponse;
 import org.js.githubrepos.api.model.RepositoryInfo;
 
 import java.util.List;
@@ -11,8 +11,8 @@ public class GithubReposResponseMapper {
     private GithubReposResponseMapper() {
     }
 
-    public static GithubReposResponse mapToGithubReposResponse(List<RepositoryInfo> repositoryInfos) {
-        return GithubReposResponse.builder()
+    public static GithubRepositoryResponse mapToGithubReposResponse(List<RepositoryInfo> repositoryInfos) {
+        return GithubRepositoryResponse.builder()
             .repositoryList(repositoryInfos)
             .build();
     }

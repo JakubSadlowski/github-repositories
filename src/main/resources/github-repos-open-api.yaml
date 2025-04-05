@@ -16,8 +16,8 @@ paths:
     get:
       tags:
         - github-repositories
-      summary: Find all repositories and branches with their last commit sh by given github login
-      description: Returns all public repositories of the user which are not forks, all of their branches with their last commit sh
+      summary: Find all repositories and branches with their last commit SHA by given github login
+      description: Returns all public repositories of the user which are not forks, all of their branches with their last commit SHA
       operationId: getGithubRepos
       parameters:
         - name: githubLogin
